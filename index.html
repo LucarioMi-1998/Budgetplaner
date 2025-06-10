@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budgetplaner</title>
+<style>
+  body {
+    background: #121212;
+    color: #e0e0e0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  h1 {
+    text-align: center;
+    margin: 20px 0;
+    color: #00bcd4;
+  }
+  .input-section {
+    background: #1e1e1e;
+    border-radius: 8px;
+    margin: 10px auto;
+    padding: 15px;
+    width: 90%;
+    max-width: 500px;
+  }
+  .input-section h2 {
+    text-align: center;
+    margin: 0 0 10px;
+    color: #4caf50;
+  }
+  .input-section input,
+  .input-section select,
+  .input-section button {
+    width: calc(100% - 12px);
+    margin: 5px 0;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+  }
+  .input-section input,
+  .input-section select {
+    background: #2c2c2c;
+    color: #e0e0e0;
+  }
+  .input-section button {
+    background: #00bcd4;
+    color: white;
+    cursor: pointer;
+  }
+  .input-section button:hover {
+    background: #0097a7;
+  }
+  .search-bar {
+    text-align: center;
+    margin: 10px;
+  }
+  .search-bar input,
+  .search-bar button {
+    padding: 8px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+  }
+  .search-bar input {
+    width: 150px;
+    background: #2c2c2c;
+    color: #e0e0e0;
+  }
+  .search-bar button {
+    background: #4caf50;
+    color: white;
+    cursor: pointer;
+  }
+  .search-bar button:hover {
+    background: #388e3c;
+  }
+  table {
+    width: 95%;
+    margin: 20px auto;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #444;
+    padding: 8px;
+    text-align: center;
+  }
+  th {
+    background: #00bcd4;
+    color: white;
+  }
+  tr:nth-child(even) {
+    background: #1e1e1e;
+  }
+  tr:nth-child(odd) {
+    background: #2c2c2c;
+  }
+  .summary-row td {
+    background: #4caf50;
+    color: white;
+    font-weight: bold;
+  }
+  @media (max-width: 600px) {
+    .input-section, table {
+      width: 95%;
+    }
+    th, td {
+      font-size: 0.9em;
+      padding: 6px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>BUDGETPLANER</h1>
+
+<div class="input-section">
+  <h2>Allgemeine Ausgaben</h2>
+  <input type="date" id="datumAllgemein" />
+  <input type="text" id="ladenAllgemein" placeholder="Laden" />
+  <input type="number" step="0.01" id="betragAllgemein" placeholder="Betrag (€)" />
+  <button onclick="addAllgemein()">Hinzufügen</button>
+</div>
+
+<div class="input-section">
+  <h2>Getränke</h2>
+  <input type="date" id="datumGetraenk" />
+  <select id="artGetraenk">
+    <option value="">--Art wählen--</option>
+    <option value="Bier/Wein">Bier/Wein</option>
+    <option value="Sekt/Softdrinks">Sekt/Softdrinks</option>
+  </select>
+  <input type="number" step="0.01" id="betragGetraenk" placeholder="Betrag (€)" />
+  <button onclick="addGetraenk()">Hinzufügen</button>
+</div>
+
+<div class="input-section">
+  <h2>Sonstiges</h2>
+  <input type="date" id="datumSonstiges" />
+  <input type="text" id="artSonstiges" placeholder="Art (z.B. Geschenk)" />
+  <input type="number" step="0.01" id="betragSonstiges" placeholder="Betrag (€)" />
+  <button onclick="addSonstiges()">Hinzufügen</button>
+</div>
+
+<div class="search-bar">
+  <input type="date" id="suchDatum" />
+  <button onclick="searchByDate()">Suchen</button>
+  <button onclick="resetSearch()">Alle Anzeigen</button>
+</div>
+
+<table id="budgetTable">
+  <thead>
+    <tr>
+      <th>Kategorie</th>
+      <th>Datum</th>
+      <th>Laden / Art</th>
+      <th>Betrag</th>
+      <th>Aktionen</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+  <tfoot>
+    <tr class="summary-row">
+      <td colspan="2">Geplant: 230€</td>
+      <td colspan="3">IST (diese Woche): <span id="istBetrag">0.00€</span></td>
+    </tr>
+  </tfoot>
+</table>
+
+<script>
+let eintraege = JSON.parse(localStorage.getItem('budgetEintraege')) || [];
+
+function renderTable(data = eintraege) {
+  const tbody = document.querySelector('#budgetTable tbody');
+  tbody.innerHTML = '';
+  data.forEach((eintrag, index) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${eintrag.kategorie}</td>
+      <td>${eintrag.datum}</td>
+      <td>${eintrag.ladenOderArt}</td>
+      <td>${parseFloat(eintrag.betrag).toFixed(2)}€</td>
+      <td>
+        <button onclick="editEntry(${index})">Bearbeiten</button>
+        <button onclick="deleteEntry(${index})">Löschen</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+  updateIST();
+  
+    // HIER DEINE WEB-APP-URL EINFÜGEN (z.B. https://script.google.com/.../exec)
+    const entry = eintraege[eintraege.length - 1]; // letzter Eintrag
+    fetch("https://script.google.com/macros/s/AKfycbyeOsm3lWh9Q73LV-Zkka_n_CI9eVB_iUE6hqvAKHjcizJ-JYCwFQCdNgJVyKdD--7_4Q/exec", {
+      method: "POST",
+      contentType: "application/json",
+      body: JSON.stringify(entry),
+    })
+    .then(res => res.json())
+    .then(response => {
+      if (response.status === "OK") {
+        console.log("In Google Sheets gespeichert!");
+      } else {
+        console.error("Fehler beim Speichern in Google Sheets:", response);
+      }
+    })
+    .catch(err => {
+      console.error("Fehler beim Speichern in Google Sheets:", err);
+    });
+    
+}
+
+function updateIST() {
+  const today = new Date();
+  const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+  const lastDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 7));
+
+  const ist = eintraege.reduce((sum, e) => {
+    const entryDate = new Date(e.datum);
+    if (entryDate >= firstDayOfWeek && entryDate <= lastDayOfWeek) {
+      return sum + parseFloat(e.betrag || 0);
+    }
+    return sum;
+  }, 0);
+  document.getElementById('istBetrag').textContent = ist.toFixed(2) + '€';
+}
+
+function addAllgemein() {
+  const datum = document.getElementById('datumAllgemein').value;
+  const laden = document.getElementById('ladenAllgemein').value;
+  const betrag = document.getElementById('betragAllgemein').value;
+  if (datum && laden && betrag) {
+    eintraege.push({ kategorie: 'Allgemein', datum, ladenOderArt: laden, betrag });
+    renderTable();
+    document.getElementById('datumAllgemein').value = '';
+    document.getElementById('ladenAllgemein').value = '';
+    document.getElementById('betragAllgemein').value = '';
+  } else {
+    alert('Bitte alle Felder ausfüllen!');
+  }
+}
+
+function addGetraenk() {
+  const datum = document.getElementById('datumGetraenk').value;
+  const art = document.getElementById('artGetraenk').value;
+  const betrag = document.getElementById('betragGetraenk').value;
+  if (datum && art && betrag) {
+    eintraege.push({ kategorie: 'Getränke', datum, ladenOderArt: art, betrag });
+    renderTable();
+    document.getElementById('datumGetraenk').value = '';
+    document.getElementById('artGetraenk').value = '';
+    document.getElementById('betragGetraenk').value = '';
+  } else {
+    alert('Bitte alle Felder ausfüllen!');
+  }
+}
+
+function addSonstiges() {
+  const datum = document.getElementById('datumSonstiges').value;
+  const art = document.getElementById('artSonstiges').value;
+  const betrag = document.getElementById('betragSonstiges').value;
+  if (datum && art && betrag) {
+    eintraege.push({ kategorie: 'Sonstiges', datum, ladenOderArt: art, betrag });
+    renderTable();
+    document.getElementById('datumSonstiges').value = '';
+    document.getElementById('artSonstiges').value = '';
+    document.getElementById('betragSonstiges').value = '';
+  } else {
+    alert('Bitte alle Felder ausfüllen!');
+  }
+}
+
+function deleteEntry(index) {
+  if (confirm('Eintrag wirklich löschen?')) {
+    eintraege.splice(index, 1);
+    renderTable();
+  }
+}
+
+function editEntry(index) {
+  const eintrag = eintraege[index];
+  const neuesDatum = prompt('Neues Datum:', eintrag.datum);
+  const neuerLadenOderArt = prompt('Neuer Laden / Art:', eintrag.ladenOderArt);
+  const neuerBetrag = prompt('Neuer Betrag:', eintrag.betrag);
+  if (neuesDatum && neuerLadenOderArt && neuerBetrag) {
+    eintraege[index] = { ...eintrag, datum: neuesDatum, ladenOderArt: neuerLadenOderArt, betrag: neuerBetrag };
+    renderTable();
+  }
+}
+
+function searchByDate() {
+  const suchDatum = document.getElementById('suchDatum').value;
+  const gefiltert = eintraege.filter(e => e.datum === suchDatum);
+  renderTable(gefiltert);
+}
+
+function resetSearch() {
+  renderTable();
+}
+
+renderTable();
+
+function loadFromSheet() {
+  fetch("https://script.google.com/macros/s/AKfycbyeOsm3lWh9Q73LV-Zkka_n_CI9eVB_iUE6hqvAKHjcizJ-JYCwFQCdNgJVyKdD--7_4Q/exec")
+    .then(res => res.json())
+    .then(data => {
+      eintraege = data;
+      renderTable();
+    })
+    .catch(err => console.error("Fehler beim Laden:", err));
+}
+
+window.onload = loadFromSheet;
+</script>
+
+
+</body>
+</html>
