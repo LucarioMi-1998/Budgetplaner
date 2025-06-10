@@ -16,7 +16,7 @@
   h1 {
     text-align: center;
     margin: 20px 0;
-    color: #00bcd4;
+    color: white;
   }
   .input-section {
     background: #1e1e1e;
@@ -29,7 +29,7 @@
   .input-section h2 {
     text-align: center;
     margin: 0 0 10px;
-    color: #4caf50;
+    color: white;
   }
   .input-section input,
   .input-section select,
@@ -147,6 +147,7 @@
 </div>
 
 <div class="search-bar">
+  <label for="suchDatum" style="margin-right: 5px;">Suchen:</label>
   <input type="date" id="suchDatum" />
   <button onclick="searchByDate()">Suchen</button>
   <button onclick="resetSearch()">Alle Anzeigen</button>
@@ -172,7 +173,7 @@
 </table>
 
 <script>
-let eintraege = JSON.parse(localStorage.getItem('budgetEintraege')) || [];
+let eintraege = [];
 
 function renderTable(data = eintraege) {
   const tbody = document.querySelector('#budgetTable tbody');
@@ -192,33 +193,12 @@ function renderTable(data = eintraege) {
     tbody.appendChild(row);
   });
   updateIST();
-  
-    // HIER DEINE WEB-APP-URL EINFÜGEN (z.B. https://script.google.com/.../exec)
-    const entry = eintraege[eintraege.length - 1]; // letzter Eintrag
-    fetch("https://script.google.com/macros/s/AKfycbyeOsm3lWh9Q73LV-Zkka_n_CI9eVB_iUE6hqvAKHjcizJ-JYCwFQCdNgJVyKdD--7_4Q/exec", {
-      method: "POST",
-      contentType: "application/json",
-      body: JSON.stringify(entry),
-    })
-    .then(res => res.json())
-    .then(response => {
-      if (response.status === "OK") {
-        console.log("In Google Sheets gespeichert!");
-      } else {
-        console.error("Fehler beim Speichern in Google Sheets:", response);
-      }
-    })
-    .catch(err => {
-      console.error("Fehler beim Speichern in Google Sheets:", err);
-    });
-    
 }
 
 function updateIST() {
   const today = new Date();
   const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
   const lastDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 7));
-
   const ist = eintraege.reduce((sum, e) => {
     const entryDate = new Date(e.datum);
     if (entryDate >= firstDayOfWeek && entryDate <= lastDayOfWeek) {
@@ -234,11 +214,8 @@ function addAllgemein() {
   const laden = document.getElementById('ladenAllgemein').value;
   const betrag = document.getElementById('betragAllgemein').value;
   if (datum && laden && betrag) {
-    eintraege.push({ kategorie: 'Allgemein', datum, ladenOderArt: laden, betrag });
-    renderTable();
-    document.getElementById('datumAllgemein').value = '';
-    document.getElementById('ladenAllgemein').value = '';
-    document.getElementById('betragAllgemein').value = '';
+    const entry = { kategorie: 'Allgemein', datum, ladenOderArt: laden, betrag };
+    saveToSheet(entry);
   } else {
     alert('Bitte alle Felder ausfüllen!');
   }
@@ -249,11 +226,8 @@ function addGetraenk() {
   const art = document.getElementById('artGetraenk').value;
   const betrag = document.getElementById('betragGetraenk').value;
   if (datum && art && betrag) {
-    eintraege.push({ kategorie: 'Getränke', datum, ladenOderArt: art, betrag });
-    renderTable();
-    document.getElementById('datumGetraenk').value = '';
-    document.getElementById('artGetraenk').value = '';
-    document.getElementById('betragGetraenk').value = '';
+    const entry = { kategorie: 'Getränke', datum, ladenOderArt: art, betrag };
+    saveToSheet(entry);
   } else {
     alert('Bitte alle Felder ausfüllen!');
   }
@@ -264,32 +238,39 @@ function addSonstiges() {
   const art = document.getElementById('artSonstiges').value;
   const betrag = document.getElementById('betragSonstiges').value;
   if (datum && art && betrag) {
-    eintraege.push({ kategorie: 'Sonstiges', datum, ladenOderArt: art, betrag });
-    renderTable();
-    document.getElementById('datumSonstiges').value = '';
-    document.getElementById('artSonstiges').value = '';
-    document.getElementById('betragSonstiges').value = '';
+    const entry = { kategorie: 'Sonstiges', datum, ladenOderArt: art, betrag };
+    saveToSheet(entry);
   } else {
     alert('Bitte alle Felder ausfüllen!');
   }
 }
 
+function saveToSheet(entry) {
+  fetch("https://script.google.com/macros/s/AKfycbyeOsm3lWh9Q73LV-Zkka_n_CI9eVB_iUE6hqvAKHjcizJ-JYCwFQCdNgJVyKdD--7_4Q/exec", {
+    method: "POST",
+    contentType: "application/json",
+    body: JSON.stringify(entry),
+  })
+  .then(res => res.json())
+  .then(response => {
+    if (response.status === "OK") {
+      loadFromSheet();
+    } else {
+      alert("Fehler beim Speichern!");
+    }
+  })
+  .catch(err => {
+    console.error("Fehler beim Speichern:", err);
+    alert("Fehler beim Speichern!");
+  });
+}
+
 function deleteEntry(index) {
-  if (confirm('Eintrag wirklich löschen?')) {
-    eintraege.splice(index, 1);
-    renderTable();
-  }
+  alert("Löschen in Google Sheets ist hier noch nicht möglich – bitte direkt im Sheet löschen!");
 }
 
 function editEntry(index) {
-  const eintrag = eintraege[index];
-  const neuesDatum = prompt('Neues Datum:', eintrag.datum);
-  const neuerLadenOderArt = prompt('Neuer Laden / Art:', eintrag.ladenOderArt);
-  const neuerBetrag = prompt('Neuer Betrag:', eintrag.betrag);
-  if (neuesDatum && neuerLadenOderArt && neuerBetrag) {
-    eintraege[index] = { ...eintrag, datum: neuesDatum, ladenOderArt: neuerLadenOderArt, betrag: neuerBetrag };
-    renderTable();
-  }
+  alert("Bearbeiten in Google Sheets ist hier noch nicht möglich – bitte direkt im Sheet bearbeiten!");
 }
 
 function searchByDate() {
@@ -301,8 +282,6 @@ function searchByDate() {
 function resetSearch() {
   renderTable();
 }
-
-renderTable();
 
 function loadFromSheet() {
   fetch("https://script.google.com/macros/s/AKfycbyeOsm3lWh9Q73LV-Zkka_n_CI9eVB_iUE6hqvAKHjcizJ-JYCwFQCdNgJVyKdD--7_4Q/exec")
@@ -316,7 +295,6 @@ function loadFromSheet() {
 
 window.onload = loadFromSheet;
 </script>
-
 
 </body>
 </html>
