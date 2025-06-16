@@ -178,6 +178,12 @@
       font-size: 14px;
       max-width: 300px;
     }
+
+    .action-buttons button {
+      padding: 4px 6px;
+      margin-right: 4px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -322,15 +328,54 @@
           <td class="${betragClass}">${entry.betrag}</td>
         `;
 
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Bearbeiten';
-        editButton.onclick = () => editEntry(index);
         const actionCell = document.createElement('td');
+        actionCell.className = 'action-buttons';
+
+        const editButton = document.createElement('button');
+        editButton.textContent = '✏️';
+        editButton.onclick = () => editEntry(index);
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = '🗑️';
+        deleteButton.onclick = () => deleteEntry(index);
+
         actionCell.appendChild(editButton);
+        actionCell.appendChild(deleteButton);
         row.appendChild(actionCell);
 
         tableBody.appendChild(row);
       });
+    }
+
+    function deleteEntry(index) {
+      if (confirm('Eintrag wirklich löschen?')) {
+        const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
+        entries.splice(index, 1);
+        localStorage.setItem('budgetEntries', JSON.stringify(entries));
+        renderEntries();
+        updateWeeklySummary();
+      }
+    }
+
+    function editEntry(index) {
+      const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
+      const entry = entries[index];
+
+      const newDatum = prompt('Neues Datum:', entry.datum);
+      const newBetreff = prompt('Neuer Betreff:', entry.betreff);
+      const newBetrag = prompt('Neuer Betrag (€):', entry.betrag);
+
+      if (newDatum && newBetreff && newBetrag && !isNaN(newBetrag)) {
+        entries[index] = {
+          datum: newDatum,
+          betreff: newBetreff,
+          kategorie: entry.kategorie,
+          betrag: parseFloat(newBetrag).toFixed(2)
+        };
+        localStorage.setItem('budgetEntries', JSON.stringify(entries));
+        renderEntries();
+        updateWeeklySummary();
+      }
     }
 
     function filterEntries() {
@@ -369,27 +414,6 @@
       }
     }
 
-    function editEntry(index) {
-      const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
-      const entry = entries[index];
-
-      const newDatum = prompt('Neues Datum:', entry.datum);
-      const newBetreff = prompt('Neuer Betreff:', entry.betreff);
-      const newBetrag = prompt('Neuer Betrag (€):', entry.betrag);
-
-      if (newDatum && newBetreff && newBetrag && !isNaN(newBetrag)) {
-        entries[index] = {
-          datum: newDatum,
-          betreff: newBetreff,
-          kategorie: entry.kategorie,
-          betrag: parseFloat(newBetrag).toFixed(2)
-        };
-        localStorage.setItem('budgetEntries', JSON.stringify(entries));
-        renderEntries();
-        updateWeeklySummary();
-      }
-    }
-
     function exportTableToCSV() {
       const rows = document.querySelectorAll('#entry-table tr');
       let csvContent = '';
@@ -409,7 +433,6 @@
       document.body.removeChild(link);
     }
 
-    // Lade gespeicherte Daten beim Start
     window.onload = () => {
       renderEntries();
       updateWeeklySummary();
