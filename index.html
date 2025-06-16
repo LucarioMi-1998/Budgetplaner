@@ -291,26 +291,46 @@
         return;
       }
 
-      const tableBody = document.querySelector('#entry-table tbody');
-      const row = document.createElement('tr');
-      const parsedBetrag = parseFloat(betrag).toFixed(2);
-      const betragClass = (kategorie === 'Essen' && parseFloat(betrag) > 20) ? 'highlight-red' : '';
+      const newEntry = {
+        datum,
+        betreff,
+        kategorie,
+        betrag: parseFloat(betrag).toFixed(2)
+      };
 
-      row.innerHTML = `
-        <td>${datum}</td>
-        <td>${betreff}</td>
-        <td>${kategorie}</td>
-        <td class="${betragClass}">${parsedBetrag}</td>
-      `;
+      const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
+      entries.push(newEntry);
+      localStorage.setItem('budgetEntries', JSON.stringify(entries));
 
-      const editButton = document.createElement('button');
-      editButton.textContent = 'Bearbeiten';
-      editButton.onclick = () => editEntry(row);
-      const actionCell = document.createElement('td');
-      actionCell.appendChild(editButton);
-      row.appendChild(actionCell);
-      tableBody.appendChild(row);
+      renderEntries();
       updateWeeklySummary();
+    }
+
+    function renderEntries() {
+      const tableBody = document.querySelector('#entry-table tbody');
+      tableBody.innerHTML = '';
+      const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
+
+      entries.forEach((entry, index) => {
+        const row = document.createElement('tr');
+        const betragClass = (entry.kategorie === 'Essen' && parseFloat(entry.betrag) > 20) ? 'highlight-red' : '';
+
+        row.innerHTML = `
+          <td>${entry.datum}</td>
+          <td>${entry.betreff}</td>
+          <td>${entry.kategorie}</td>
+          <td class="${betragClass}">${entry.betrag}</td>
+        `;
+
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Bearbeiten';
+        editButton.onclick = () => editEntry(index);
+        const actionCell = document.createElement('td');
+        actionCell.appendChild(editButton);
+        row.appendChild(actionCell);
+
+        tableBody.appendChild(row);
+      });
     }
 
     function filterEntries() {
@@ -323,17 +343,17 @@
     }
 
     function updateWeeklySummary() {
-      const rows = document.querySelectorAll('#entry-table tbody tr');
+      const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
       const today = new Date();
       const monday = getMonday(today);
       const sunday = new Date(monday);
       sunday.setDate(monday.getDate() + 6);
 
       let sum = 0;
-      rows.forEach(row => {
-        const date = new Date(row.cells[0].textContent);
+      entries.forEach(entry => {
+        const date = new Date(entry.datum);
         if (date >= monday && date <= sunday) {
-          sum += parseFloat(row.cells[3].textContent);
+          sum += parseFloat(entry.betrag);
         }
       });
 
@@ -349,22 +369,23 @@
       }
     }
 
-    function editEntry(row) {
-      const cells = row.querySelectorAll('td');
-      const datum = prompt('Neues Datum:', cells[0].textContent);
-      const betreff = prompt('Neuer Betreff:', cells[1].textContent);
-      const kategorie = cells[2].textContent;
-      const betrag = prompt('Neuer Betrag (€):', cells[3].textContent);
+    function editEntry(index) {
+      const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
+      const entry = entries[index];
 
-      if (datum && betreff && betrag && !isNaN(betrag)) {
-        cells[0].textContent = datum;
-        cells[1].textContent = betreff;
-        cells[3].textContent = parseFloat(betrag).toFixed(2);
-        if (kategorie === 'Essen' && parseFloat(betrag) > 20) {
-          cells[3].classList.add('highlight-red');
-        } else {
-          cells[3].classList.remove('highlight-red');
-        }
+      const newDatum = prompt('Neues Datum:', entry.datum);
+      const newBetreff = prompt('Neuer Betreff:', entry.betreff);
+      const newBetrag = prompt('Neuer Betrag (€):', entry.betrag);
+
+      if (newDatum && newBetreff && newBetrag && !isNaN(newBetrag)) {
+        entries[index] = {
+          datum: newDatum,
+          betreff: newBetreff,
+          kategorie: entry.kategorie,
+          betrag: parseFloat(newBetrag).toFixed(2)
+        };
+        localStorage.setItem('budgetEntries', JSON.stringify(entries));
+        renderEntries();
         updateWeeklySummary();
       }
     }
@@ -387,6 +408,12 @@
       link.click();
       document.body.removeChild(link);
     }
+
+    // Lade gespeicherte Daten beim Start
+    window.onload = () => {
+      renderEntries();
+      updateWeeklySummary();
+    };
   </script>
 </body>
 </html>
