@@ -1,208 +1,393 @@
+Natürlich! Hier ist der vollständige HTML-Code deiner finalen Version mit:
+
+* 💡 Light/Darkmode-Umschalter oben rechts
+* 💾 Export-Button in passender Spaltenbreite
+* 🔴 Kontrastreiche Hervorhebung von „Essen“-Ausgaben über 20 € im Darkmode
+
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Budgetplaner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Budget Planer</title>
   <style>
-    body { background: #121212; color: #e0e0e0; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    h1 { text-align: center; margin: 20px 0; color: white; }
-    .input-section { background: #1e1e1e; border-radius: 8px; margin: 10px auto; padding: 15px; width: 90%; max-width: 500px; }
-    .input-section h2 { text-align: center; margin: 0 0 10px; color: white; }
-    .input-section input, .input-section select, .input-section button {
-      width: calc(100% - 12px); margin: 5px 0; padding: 10px; border: none; border-radius: 4px; font-size: 1em;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 20px;
+      background: #f0f4f8;
+      color: #333;
     }
-    .input-section input, .input-section select { background: #2c2c2c; color: #e0e0e0; }
-    .input-section button { background: #00bcd4; color: white; cursor: pointer; }
-    .input-section button:hover { background: #0097a7; }
-    .search-bar { text-align: center; margin: 10px; }
-    .search-bar input, .search-bar button { padding: 8px; margin: 5px; border: none; border-radius: 4px; }
-    .search-bar input { width: 150px; background: #2c2c2c; color: #e0e0e0; }
-    .search-bar button { background: #4caf50; color: white; cursor: pointer; }
-    .search-bar button:hover { background: #388e3c; }
-    table { width: 95%; margin: 20px auto; border-collapse: collapse; }
-    th, td { border: 1px solid #444; padding: 8px; text-align: center; }
-    th { background: #00bcd4; color: white; }
-    tr:nth-child(even) { background: #1e1e1e; }
-    tr:nth-child(odd) { background: #2c2c2c; }
-    .summary-row td { background: #4caf50; color: white; font-weight: bold; }
-    @media (max-width: 600px) {
-      .input-section, table { width: 95%; }
-      th, td { font-size: 0.9em; padding: 6px; }
+    .dark-mode {
+      background: #1e1e2f !important;
+      color: #e0e0e0 !important;
+    }
+    .dark-mode input,
+    .dark-mode select,
+    .dark-mode textarea {
+      background: #3a3a55 !important;
+      color: #e0e0e0 !important;
+    }
+    .dark-mode table,
+    .dark-mode th,
+    .dark-mode td {
+      background: #2a2a40 !important;
+      color: #e0e0e0 !important;
+      border-color: #444 !important;
+    }
+    .dark-mode .column,
+    .dark-mode .summary {
+      background: #2a2a40 !important;
+      border-color: #444 !important;
+    }
+    .dark-mode button {
+      background-color: #3b82f6 !important;
+      color: white !important;
+    }
+    .dark-mode .highlight-red {
+      color: #f87171 !important;
+      background-color: #3a0d0d !important;
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-around;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .column {
+      flex: 1;
+      background-color: #ffffff;
+      border: 1px solid #dcdfe6;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    h2 {
+      color: #34495e;
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px;
+      width: 100%;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+      background-color: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    th,
+    td {
+      border: 1px solid #e0e0e0;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      color: #2c3e50;
+    }
+
+    #search {
+      margin: 20px auto;
+      padding: 12px;
+      width: 100%;
+      max-width: 400px;
+      display: block;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .summary {
+      margin: 40px auto;
+      padding: 20px;
+      border: 1px solid #dcdfe6;
+      border-radius: 10px;
+      background-color: #ffffff;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .over-budget {
+      color: red;
+      font-weight: bold;
+    }
+
+    .under-budget {
+      color: green;
+      font-weight: bold;
+    }
+
+    .highlight-red {
+      color: red;
+      font-weight: bold;
+    }
+
+    .column:nth-child(1) {
+      border-left: 6px solid #2ecc71;
+    }
+
+    .column:nth-child(2) {
+      border-left: 6px solid #3498db;
+    }
+
+    .column:nth-child(3) {
+      border-left: 6px solid #9b59b6;
+    }
+
+    .dark-toggle {
+      padding: 6px 10px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      max-width: 300px;
     }
   </style>
 </head>
 <body>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1 style="margin: 0;">Budget Planer</h1>
+    <button id="toggle-theme" class="dark-toggle">🌓</button>
+  </div>
 
-<h1>BUDGETPLANER</h1>
+  <div class="container">
+    <div class="column">
+      <h2>Essen</h2>
+      <label for="essen-datum">Datum</label>
+      <input type="date" id="essen-datum" />
+      <label for="essen-laden">Laden</label>
+      <input type="text" id="essen-laden" placeholder="z.B. Supermarkt" />
+      <label for="essen-betrag">Betrag (€)</label>
+      <input type="number" id="essen-betrag" step="0.01" />
+      <button onclick="addEntry('Essen')">Eintrag speichern</button>
+    </div>
+    <div class="column">
+      <h2>Getränke</h2>
+      <label for="getraenke-datum">Datum</label>
+      <input type="date" id="getraenke-datum" />
+      <label for="getraenke-laden">Laden</label>
+      <input type="text" id="getraenke-laden" placeholder="z.B. Getränkemarkt" />
+      <label for="getraenke-betrag">Betrag (€)</label>
+      <input type="number" id="getraenke-betrag" step="0.01" />
+      <button onclick="addEntry('Getränke')">Eintrag speichern</button>
+    </div>
+    <div class="column">
+      <h2>Sonstiges</h2>
+      <label for="sonstiges-datum">Datum</label>
+      <input type="date" id="sonstiges-datum" />
+      <label for="sonstiges-zweck">Verwendungszweck</label>
+      <input type="text" id="sonstiges-zweck" placeholder="z.B. Geschenk" />
+      <label for="sonstiges-betrag">Betrag (€)</label>
+      <input type="number" id="sonstiges-betrag" step="0.01" />
+      <button onclick="addEntry('Sonstiges')">Eintrag speichern</button>
+    </div>
+  </div>
 
-<div class="input-section">
-  <h2>Allgemeine Ausgaben</h2>
-  <input type="date" id="datumAllgemein" />
-  <input type="text" id="ladenAllgemein" placeholder="Laden" />
-  <input type="number" step="0.01" id="betragAllgemein" placeholder="Betrag (€)" />
-  <button onclick="addAllgemein()">Hinzufügen</button>
-</div>
+  <input type="text" id="search" placeholder="Nach Datum suchen (YYYY-MM-DD)" onkeyup="filterEntries()" />
 
-<div class="input-section">
-  <h2>Getränke</h2>
-  <input type="date" id="datumGetraenk" />
-  <select id="artGetraenk">
-    <option value="">--Art wählen--</option>
-    <option value="Bier/Wein">Bier/Wein</option>
-    <option value="Sekt/Softdrinks">Sekt/Softdrinks</option>
-  </select>
-  <input type="number" step="0.01" id="betragGetraenk" placeholder="Betrag (€)" />
-  <button onclick="addGetraenk()">Hinzufügen</button>
-</div>
+  <table id="entry-table">
+    <thead>
+      <tr>
+        <th>Datum</th>
+        <th>Betreff</th>
+        <th>Kategorie</th>
+        <th>Betrag (€)</th>
+        <th>Aktionen</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-<div class="input-section">
-  <h2>Sonstiges</h2>
-  <input type="date" id="datumSonstiges" />
-  <input type="text" id="artSonstiges" placeholder="Art (z.B. Geschenk)" />
-  <input type="number" step="0.01" id="betragSonstiges" placeholder="Betrag (€)" />
-  <button onclick="addSonstiges()">Hinzufügen</button>
-</div>
+  <div class="summary">
+    <h3>Auswertung der aktuellen Woche</h3>
+    <p><strong>Soll:</strong> 230,00 €</p>
+    <p><strong>Ist:</strong> <span id="ist-wert" class="under-budget">0.00</span> €</p>
+  </div>
 
-<div class="search-bar">
-  <label for="suchDatum" style="margin-right: 5px;">Suchen:</label>
-  <input type="date" id="suchDatum" />
-  <button onclick="searchByDate()">Suchen</button>
-  <button onclick="resetSearch()">Alle Anzeigen</button>
-</div>
+  <div style="text-align: center; margin-top: 20px;">
+    <button onclick="exportTableToCSV()" style="
+      padding: 10px;
+      width: 100%;
+      max-width: 300px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    ">💾 Export</button>
+  </div>
 
-<table id="budgetTable">
-  <thead>
-    <tr>
-      <th>Kategorie</th>
-      <th>Datum</th>
-      <th>Laden / Art</th>
-      <th>Betrag</th>
-      <th>Aktionen</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-  <tfoot>
-    <tr class="summary-row">
-      <td colspan="2">Geplant: 230€</td>
-      <td colspan="3">IST (diese Woche): <span id="istBetrag">0.00€</span></td>
-    </tr>
-  </tfoot>
-</table>
+  <script>
+    document.getElementById('toggle-theme').addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+    });
 
-<script>
-let eintraege = JSON.parse(localStorage.getItem('budgetEintraege')) || [];
+    function addEntry(kategorie) {
+      let datum, betreff, betrag;
 
-function renderTable(data = eintraege) {
-  const tbody = document.querySelector('#budgetTable tbody');
-  tbody.innerHTML = '';
-  data.forEach((eintrag, index) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${eintrag.kategorie}</td>
-      <td>${eintrag.datum}</td>
-      <td>${eintrag.ladenOderArt}</td>
-      <td>${parseFloat(eintrag.betrag).toFixed(2)}€</td>
-      <td>
-        <button onclick="editEntry(${index})">Bearbeiten</button>
-        <button onclick="deleteEntry(${index})">Löschen</button>
-      </td>
-    `;
-    tbody.appendChild(row);
-  });
-  updateIST();
-  localStorage.setItem('budgetEintraege', JSON.stringify(eintraege));
-}
+      if (kategorie === 'Essen') {
+        datum = document.getElementById('essen-datum').value;
+        betreff = document.getElementById('essen-laden').value;
+        betrag = document.getElementById('essen-betrag').value;
+      } else if (kategorie === 'Getränke') {
+        datum = document.getElementById('getraenke-datum').value;
+        betreff = document.getElementById('getraenke-laden').value;
+        betrag = document.getElementById('getraenke-betrag').value;
+      } else if (kategorie === 'Sonstiges') {
+        datum = document.getElementById('sonstiges-datum').value;
+        betreff = document.getElementById('sonstiges-zweck').value;
+        betrag = document.getElementById('sonstiges-betrag').value;
+      }
 
-function updateIST() {
-  const today = new Date();
-  const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
-  const lastDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 7));
-  const ist = eintraege.reduce((sum, e) => {
-    const entryDate = new Date(e.datum);
-    if (entryDate >= firstDayOfWeek && entryDate <= lastDayOfWeek) {
-      return sum + parseFloat(e.betrag || 0);
+      if (!datum || !betreff || !betrag) {
+        alert('Bitte alle Felder ausfüllen.');
+        return;
+      }
+
+      const tableBody = document.querySelector('#entry-table tbody');
+      const row = document.createElement('tr');
+      const parsedBetrag = parseFloat(betrag).toFixed(2);
+      const betragClass = (kategorie === 'Essen' && parseFloat(betrag) > 20) ? 'highlight-red' : '';
+
+      row.innerHTML = `
+        <td>${datum}</td>
+        <td>${betreff}</td>
+        <td>${kategorie}</td>
+        <td class="${betragClass}">${parsedBetrag}</td>
+      `;
+
+      const editButton = document.createElement('button');
+      editButton.textContent = 'Bearbeiten';
+      editButton.onclick = () => editEntry(row);
+      const actionCell = document.createElement('td');
+      actionCell.appendChild(editButton);
+      row.appendChild(actionCell);
+      tableBody.appendChild(row);
+      updateWeeklySummary();
     }
-    return sum;
-  }, 0);
-  document.getElementById('istBetrag').textContent = ist.toFixed(2) + '€';
-}
 
-function addAllgemein() {
-  const datum = document.getElementById('datumAllgemein').value;
-  const laden = document.getElementById('ladenAllgemein').value;
-  const betrag = document.getElementById('betragAllgemein').value;
-  if (datum && laden && betrag) {
-    eintraege.push({ kategorie: 'Allgemein', datum, ladenOderArt: laden, betrag });
-    renderTable();
-    document.getElementById('datumAllgemein').value = '';
-    document.getElementById('ladenAllgemein').value = '';
-    document.getElementById('betragAllgemein').value = '';
-  } else {
-    alert('Bitte alle Felder ausfüllen!');
-  }
-}
+    function filterEntries() {
+      const filter = document.getElementById('search').value;
+      const rows = document.querySelectorAll('#entry-table tbody tr');
+      rows.forEach(row => {
+        const date = row.cells[0].textContent;
+        row.style.display = date.includes(filter) ? '' : 'none';
+      });
+    }
 
-function addGetraenk() {
-  const datum = document.getElementById('datumGetraenk').value;
-  const art = document.getElementById('artGetraenk').value;
-  const betrag = document.getElementById('betragGetraenk').value;
-  if (datum && art && betrag) {
-    eintraege.push({ kategorie: 'Getränke', datum, ladenOderArt: art, betrag });
-    renderTable();
-    document.getElementById('datumGetraenk').value = '';
-    document.getElementById('artGetraenk').value = '';
-    document.getElementById('betragGetraenk').value = '';
-  } else {
-    alert('Bitte alle Felder ausfüllen!');
-  }
-}
+    function updateWeeklySummary() {
+      const rows = document.querySelectorAll('#entry-table tbody tr');
+      const now = new Date();
+      const firstDay = new Date(now.setDate(now.getDate() - now.getDay() + 1)); // Montag
+      const lastDay = new Date(firstDay);
+      lastDay.setDate(firstDay.getDate() + 6); // Sonntag
 
-function addSonstiges() {
-  const datum = document.getElementById('datumSonstiges').value;
-  const art = document.getElementById('artSonstiges').value;
-  const betrag = document.getElementById('betragSonstiges').value;
-  if (datum && art && betrag) {
-    eintraege.push({ kategorie: 'Sonstiges', datum, ladenOderArt: art, betrag });
-    renderTable();
-    document.getElementById('datumSonstiges').value = '';
-    document.getElementById('artSonstiges').value = '';
-    document.getElementById('betragSonstiges').value = '';
-  } else {
-    alert('Bitte alle Felder ausfüllen!');
-  }
-}
+      let sum = 0;
+      rows.forEach(row => {
+        const date = new Date(row.cells[0].textContent);
+        if (date >= firstDay && date <= lastDay) {
+          sum += parseFloat(row.cells[3].textContent);
+        }
+      });
 
-function deleteEntry(index) {
-  if (confirm('Eintrag wirklich löschen?')) {
-    eintraege.splice(index, 1);
-    renderTable();
-  }
-}
+      const istWertElem = document.getElementById('ist-wert');
+      istWertElem.textContent = sum.toFixed(2);
 
-function editEntry(index) {
-  const eintrag = eintraege[index];
-  const neuesDatum = prompt('Neues Datum:', eintrag.datum);
-  const neuerLadenOderArt = prompt('Neuer Laden / Art:', eintrag.ladenOderArt);
-  const neuerBetrag = prompt('Neuer Betrag:', eintrag.betrag);
-  if (neuesDatum && neuerLadenOderArt && neuerBetrag) {
-    eintraege[index] = { ...eintrag, datum: neuesDatum, ladenOderArt: neuerLadenOderArt, betrag: neuerBetrag };
-    renderTable();
-  }
-}
+      if (sum > 230) {
+        istWertElem.classList.remove('under-budget');
+        istWertElem.classList.add('over-budget');
+      } else {
+        istWertElem.classList.remove('over-budget');
+        istWertElem.classList.add('under-budget');
+      }
+    }
 
-function searchByDate() {
-  const suchDatum = document.getElementById('suchDatum').value;
-  const gefiltert = eintraege.filter(e => e.datum === suchDatum);
-  renderTable(gefiltert);
-}
+    function editEntry(row) {
+      const cells = row.querySelectorAll('td');
+      const datum = prompt('Neues Datum:', cells[0].textContent);
+      const betreff = prompt('Neuer Betreff:', cells[1].textContent);
+      const kategorie = cells[2].textContent;
+      const betrag = prompt('Neuer Betrag (€):', cells[3].textContent);
 
-function resetSearch() {
-  renderTable();
-}
+      if (datum && betreff && betrag && !isNaN(betrag)) {
+        cells[0].textContent = datum;
+        cells[1].textContent = betreff;
+        cells[3].textContent = parseFloat(betrag).toFixed(2);
+        if (kategorie === 'Essen' && parseFloat(betrag) > 20) {
+          cells[3].classList.add('highlight-red');
+        } else {
+          cells[3].classList.remove('highlight-red');
+        }
+        updateWeeklySummary();
+      }
+    }
 
-renderTable();
-</script>
+    function exportTableToCSV() {
+      const rows = document.querySelectorAll('#entry-table tr');
+      let csvContent = '';
+      rows.forEach(row => {
+        const cols = row.querySelectorAll('td, th');
+        const rowData = Array.from(cols).map(col => `"${col.innerText.replace(/"/g, '""')}"`).join(',');
+        csvContent += rowData + '\\n';
+      });
 
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.setAttribute('href', URL.createObjectURL(blob));
+      link.setAttribute('download', 'budget_daten.csv');
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
 </body>
 </html>
+```
+
+👉 Du kannst diesen Code direkt in eine HTML-Datei auf GitHub einfügen oder in einem Repository wie `budget-planer/index.html` ablegen. Lass mich wissen, wenn du eine README oder CSS-Auslagerung willst!
