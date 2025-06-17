@@ -3,241 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Budget Planer</title>
+  <title>Budgetplaner</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter&display=swap" />
   <style>
-    :root {
-      --bg: #f9fafb;
-      --text: #111827;
-      --primary: #3b82f6;
-      --secondary: #6b7280;
-      --border: #d1d5db;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #1f2937;
-        --text: #f9fafb;
-        --primary: #60a5fa;
-        --secondary: #9ca3af;
-        --border: #374151;
-      }
-    }
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Inter', sans-serif;
+      background-color: #f4f4f5;
       margin: 2rem;
-      background: var(--bg);
-      color: var(--text);
+      color: #1f2937;
     }
-    h1, h2 { color: var(--primary); }
-    .input-container {
+    h1 {
+      font-size: 1.8rem;
+      color: #111827;
+      margin-bottom: 1rem;
+    }
+    .kategorie-container {
       display: flex;
       gap: 1rem;
       flex-wrap: wrap;
-      margin-bottom: 2rem;
-      justify-content: space-between;
     }
-    .category {
+    .kategorie {
       flex: 1 1 300px;
+      background-color: white;
       padding: 1rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: white;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    label, input, button, select {
-      font-size: 1rem;
+    .kategorie h2 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+    .kategorie input {
       width: 100%;
-    }
-    input, select {
+      margin-bottom: 0.5rem;
       padding: 0.5rem;
-      border: 1px solid var(--border);
-      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
     }
-    button {
-      background: var(--primary);
-      color: white;
+    .kategorie button {
+      width: 100%;
+      padding: 0.5rem;
+      background-color: #3b82f6;
       border: none;
-      padding: 0.5rem;
-      border-radius: 4px;
+      color: white;
+      border-radius: 5px;
       cursor: pointer;
     }
-    button:hover {
-      background: #2563eb;
+    .kategorie button:hover {
+      background-color: #2563eb;
     }
     table {
       width: 100%;
-      border-collapse: collapse;
       margin-top: 2rem;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
     }
     th, td {
-      border: 1px solid var(--border);
-      padding: 0.5rem;
+      padding: 0.8rem;
       text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      background-color: #f3f4f6;
+      color: #374151;
+    }
+    tr:last-child td {
+      border-bottom: none;
     }
     .actions button {
       margin-right: 0.5rem;
-      background: var(--secondary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
     }
     .actions button:hover {
-      background: #4b5563;
+      opacity: 0.7;
     }
-    #summary {
-  margin-top: 2rem;
-  font-weight: bold;
-  font-size: 1.2rem;
-  background: #111827;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 2px solid var(--primary);
-  color: var(--primary);
-  display: block;
-  text-align: center;
-  box-shadow: 0 0 10px rgba(59,130,246,0.4);
-}
   </style>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAfWr48lKNoZYOpLGgF5LQy3NUOJ_9hWrw",
-  authDomain: "budgetplaner-acc2b.firebaseapp.com",
-  projectId: "budgetplaner-acc2b",
-  storageBucket: "budgetplaner-acc2b.firebasestorage.app",
-  messagingSenderId: "1034450644601",
-  appId: "1:1034450644601:web:bfe1880e424d27e9252ea8",
-  measurementId: "G-ZCSNCWSK48"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-function getCurrentCalendarWeek(date = new Date()) {
-  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-  const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
-  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-}
-
-async function loadEntries() {
-  const snapshot = await getDocs(collection(db, "budgetEntries"));
-  const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  renderEntries(data);
-  renderSummary(data);
-}
-
-function renderEntries(entries) {
-  const table = document.getElementById("entries");
-  table.innerHTML = "";
-  entries.forEach(entry => {
-    const row = document.createElement("tr");
-    const isHigh = parseFloat(entry.betrag) > 20;
-    row.innerHTML = `
-      <td>${entry.datum}</td>
-      <td>${entry.betreff}</td>
-      <td>${entry.kategorie}</td>
-      <td style="${isHigh ? 'color:red;font-weight:bold' : ''}">${entry.betrag} €</td>
-      <td class="actions">
-        <button style="padding:0.3rem 0.5rem;font-size:0.9rem" title="Bearbeiten" onclick="editEntry('${entry.id}')">✏️</button>
-        <button style="padding:0.3rem 0.5rem;font-size:0.9rem" title="Löschen" onclick="deleteEntry('${entry.id}')">🗑️</button>
-      </td>
-    `;
-    table.appendChild(row);
-  });
-  });
-}
-
-function renderSummary(entries) {
-  const summary = document.getElementById("summary");
-  let total = 0;
-  const now = new Date();
-  const currentWeek = getCurrentCalendarWeek();
-  entries.forEach(e => {
-    const edate = new Date(e.datum);
-    const eWeek = getCurrentCalendarWeek(edate);
-    if (eWeek === currentWeek && edate.getFullYear() === now.getFullYear()) {
-      total += parseFloat(e.betrag);
-    }
-  });
-  summary.textContent = `SOLL: 230,00 € | IST-Wert (KW ${currentWeek}): ${total.toFixed(2)} €`;
-}
-
-window.addEntry = async function(kategorie) {
-  const datum = document.getElementById(`${kategorie}-datum`).value;
-  const betreff = document.getElementById(`${kategorie}-text`).value;
-  const betrag = document.getElementById(`${kategorie}-betrag`).value;
-  if (!datum || !betreff || !betrag) {
-    alert("Bitte alle Felder ausfüllen.");
-    return;
-  }
-  const newEntry = {
-    datum,
-    betreff,
-    betrag: parseFloat(betrag).toFixed(2),
-    kategorie
-  };
-  await addDoc(collection(db, "budgetEntries"), newEntry);
-  loadEntries();
-};
-
-window.deleteEntry = async function(id) {
-  if (confirm("Eintrag wirklich löschen?")) {
-    await deleteDoc(doc(db, "budgetEntries", id));
-    loadEntries();
-  }
-};
-
-window.editEntry = async function(id) {
-  const snapshot = await getDocs(collection(db, "budgetEntries"));
-  const docSnap = snapshot.docs.find(d => d.id === id);
-  if (!docSnap) return;
-  const entry = docSnap.data();
-  const datum = prompt("Neues Datum:", entry.datum);
-  const betreff = prompt("Neuer Betreff:", entry.betreff);
-  const betrag = prompt("Neuer Betrag:", entry.betrag);
-  if (!datum || !betreff || !betrag) return;
-  await updateDoc(doc(db, "budgetEntries", id), {
-    datum,
-    betreff,
-    betrag,
-    kategorie: entry.kategorie
-  });
-  loadEntries();
-};
-
-window.onload = loadEntries;
-  </script>
 </head>
 <body>
-  <h1>Budget Planer</h1>
+  <h1>Budgetplaner</h1>
 
-  <div class="input-container">
-    <div class="category">
+  <div class="kategorie-container">
+    <div class="kategorie">
       <h2>Essen</h2>
       <input type="date" id="Essen-datum">
-      <input type="text" id="Essen-text" placeholder="Geschäft">
+      <input type="text" id="Essen-text" placeholder="Titel">
       <input type="number" id="Essen-betrag" placeholder="Betrag in €">
-      <button onclick="addEntry('Essen')">Eintrag hinzufügen</button>
+      <button onclick="addEntry('Essen')">Hinzufügen</button>
     </div>
 
-    <div class="category">
+    <div class="kategorie">
       <h2>Getränke</h2>
       <input type="date" id="Getränke-datum">
-      <input type="text" id="Getränke-text" placeholder="Getränkestelle">
+      <input type="text" id="Getränke-text" placeholder="Titel">
       <input type="number" id="Getränke-betrag" placeholder="Betrag in €">
-      <button onclick="addEntry('Getränke')">Eintrag hinzufügen</button>
+      <button onclick="addEntry('Getränke')">Hinzufügen</button>
     </div>
 
-    <div class="category">
+    <div class="kategorie">
       <h2>Sonstiges</h2>
       <input type="date" id="Sonstiges-datum">
-      <input type="text" id="Sonstiges-text" placeholder="Zweck">
+      <input type="text" id="Sonstiges-text" placeholder="Titel">
       <input type="number" id="Sonstiges-betrag" placeholder="Betrag in €">
-      <button onclick="addEntry('Sonstiges')">Eintrag hinzufügen</button>
+      <button onclick="addEntry('Sonstiges')">Hinzufügen</button>
     </div>
   </div>
 
-  <h2>Alle Einträge</h2>
   <table>
     <thead>
       <tr>
@@ -248,9 +123,91 @@ window.onload = loadEntries;
         <th>Aktionen</th>
       </tr>
     </thead>
-    <tbody id="entries"></tbody>
+    <tbody id="eintragsliste"></tbody>
   </table>
 
-  <div id="summary"></div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfWr48lKNoZYOpLGgF5LQy3NUOJ_9hWrw",
+      authDomain: "budgetplaner-acc2b.firebaseapp.com",
+      projectId: "budgetplaner-acc2b",
+      storageBucket: "budgetplaner-acc2b.appspot.com",
+      messagingSenderId: "1034450644601",
+      appId: "1:1034450644601:web:bfe1880e424d27e9252ea8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function ladeEintraege() {
+      const eintragsliste = document.getElementById("eintragsliste");
+      eintragsliste.innerHTML = "";
+      const snapshot = await getDocs(collection(db, "eintraege"));
+      snapshot.forEach(docSnap => {
+        const eintrag = docSnap.data();
+        const zeile = document.createElement("tr");
+        zeile.innerHTML = `
+          <td>${eintrag.datum}</td>
+          <td>${eintrag.betreff}</td>
+          <td>${eintrag.kategorie}</td>
+          <td>${eintrag.betrag} €</td>
+          <td class="actions">
+            <button onclick="bearbeiteEintrag('${docSnap.id}')">✏️</button>
+            <button onclick="loescheEintrag('${docSnap.id}')">🗑️</button>
+          </td>
+        `;
+        eintragsliste.appendChild(zeile);
+      });
+    }
+
+    window.addEntry = async function(kategorie) {
+      const datum = document.getElementById(`${kategorie}-datum`).value;
+      const betreff = document.getElementById(`${kategorie}-text`).value;
+      const betrag = document.getElementById(`${kategorie}-betrag`).value;
+      if (!datum || !betreff || !betrag) return alert("Bitte alle Felder ausfüllen.");
+
+      await addDoc(collection(db, "eintraege"), {
+        datum,
+        betreff,
+        betrag,
+        kategorie
+      });
+      ladeEintraege();
+    }
+
+    window.loescheEintrag = async function(id) {
+      if (confirm("Eintrag wirklich löschen?")) {
+        await deleteDoc(doc(db, "eintraege", id));
+        ladeEintraege();
+      }
+    }
+
+    window.bearbeiteEintrag = async function(id) {
+      const eintragRef = doc(db, "eintraege", id);
+      const snapshot = await getDocs(collection(db, "eintraege"));
+      const eintragDoc = snapshot.docs.find(d => d.id === id);
+      if (!eintragDoc) return;
+
+      const eintrag = eintragDoc.data();
+      const datum = prompt("Datum:", eintrag.datum);
+      const betreff = prompt("Betreff:", eintrag.betreff);
+      const betrag = prompt("Betrag in €:", eintrag.betrag);
+
+      if (datum && betreff && betrag) {
+        await updateDoc(eintragRef, {
+          datum,
+          betreff,
+          betrag,
+          kategorie: eintrag.kategorie
+        });
+        ladeEintraege();
+      }
+    }
+
+    window.onload = ladeEintraege;
+  </script>
 </body>
 </html>
