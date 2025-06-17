@@ -4,10 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Budgetplaner</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter&display=swap" />
   <style>
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: sans-serif;
       background-color: #f4f4f5;
       margin: 2rem;
       color: #1f2937;
@@ -69,9 +68,6 @@
       background-color: #f3f4f6;
       color: #374151;
     }
-    tr:last-child td {
-      border-bottom: none;
-    }
     .actions button {
       margin-right: 0.5rem;
       background: none;
@@ -81,6 +77,16 @@
     }
     .actions button:hover {
       opacity: 0.7;
+    }
+    #summary {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #111827;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 1.2rem;
     }
   </style>
 </head>
@@ -126,6 +132,8 @@
     <tbody id="eintragsliste"></tbody>
   </table>
 
+  <div id="summary">Lade SOLL/IST...</div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -142,13 +150,30 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    function getCurrentCalendarWeek(date = new Date()) {
+      const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+      const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+      return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    }
+
     async function ladeEintraege() {
       const eintragsliste = document.getElementById("eintragsliste");
       eintragsliste.innerHTML = "";
+      let total = 0;
+      const now = new Date();
+      const currentWeek = getCurrentCalendarWeek();
+
       const snapshot = await getDocs(collection(db, "eintraege"));
       snapshot.forEach(docSnap => {
         const eintrag = docSnap.data();
         const zeile = document.createElement("tr");
+
+        const edate = new Date(eintrag.datum);
+        const eWeek = getCurrentCalendarWeek(edate);
+        if (eWeek === currentWeek && edate.getFullYear() === now.getFullYear()) {
+          total += parseFloat(eintrag.betrag);
+        }
+
         zeile.innerHTML = `
           <td>${eintrag.datum}</td>
           <td>${eintrag.betreff}</td>
@@ -161,6 +186,9 @@
         `;
         eintragsliste.appendChild(zeile);
       });
+
+      document.getElementById("summary").textContent =
+        `SOLL: 230,00 € | IST (KW ${currentWeek}): ${total.toFixed(2)} €`;
     }
 
     window.addEntry = async function(kategorie) {
