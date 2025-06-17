@@ -93,7 +93,113 @@
     }
   </style>
   <script type="module">
-    // JavaScript bleibt unverändert
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAfWr48lKNoZYOpLGgF5LQy3NUOJ_9hWrw",
+  authDomain: "budgetplaner-acc2b.firebaseapp.com",
+  projectId: "budgetplaner-acc2b",
+  storageBucket: "budgetplaner-acc2b.firebasestorage.app",
+  messagingSenderId: "1034450644601",
+  appId: "1:1034450644601:web:bfe1880e424d27e9252ea8",
+  measurementId: "G-ZCSNCWSK48"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function getCurrentCalendarWeek(date = new Date()) {
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
+
+async function loadEntries() {
+  const snapshot = await getDocs(collection(db, "budgetEntries"));
+  const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  renderEntries(data);
+  renderSummary(data);
+}
+
+function renderEntries(entries) {
+  const table = document.getElementById("entries");
+  table.innerHTML = "";
+  entries.forEach(entry => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${entry.datum}</td>
+      <td>${entry.betreff}</td>
+      <td>${entry.kategorie}</td>
+      <td>${entry.betrag} €</td>
+      <td class="actions">
+        <button onclick="editEntry('${entry.id}')">Bearbeiten</button>
+        <button onclick="deleteEntry('${entry.id}')">Löschen</button>
+      </td>
+    `;
+    table.appendChild(row);
+  });
+}
+
+function renderSummary(entries) {
+  const summary = document.getElementById("summary");
+  let total = 0;
+  const now = new Date();
+  const currentWeek = getCurrentCalendarWeek();
+  entries.forEach(e => {
+    const edate = new Date(e.datum);
+    const eWeek = getCurrentCalendarWeek(edate);
+    if (eWeek === currentWeek && edate.getFullYear() === now.getFullYear()) {
+      total += parseFloat(e.betrag);
+    }
+  });
+  summary.textContent = `IST-Wert (KW ${currentWeek}): ${total.toFixed(2)} €`;
+}
+
+window.addEntry = async function(kategorie) {
+  const datum = document.getElementById(`${kategorie}-datum`).value;
+  const betreff = document.getElementById(`${kategorie}-text`).value;
+  const betrag = document.getElementById(`${kategorie}-betrag`).value;
+  if (!datum || !betreff || !betrag) {
+    alert("Bitte alle Felder ausfüllen.");
+    return;
+  }
+  const newEntry = {
+    datum,
+    betreff,
+    betrag: parseFloat(betrag).toFixed(2),
+    kategorie
+  };
+  await addDoc(collection(db, "budgetEntries"), newEntry);
+  loadEntries();
+};
+
+window.deleteEntry = async function(id) {
+  if (confirm("Eintrag wirklich löschen?")) {
+    await deleteDoc(doc(db, "budgetEntries", id));
+    loadEntries();
+  }
+};
+
+window.editEntry = async function(id) {
+  const snapshot = await getDocs(collection(db, "budgetEntries"));
+  const docSnap = snapshot.docs.find(d => d.id === id);
+  if (!docSnap) return;
+  const entry = docSnap.data();
+  const datum = prompt("Neues Datum:", entry.datum);
+  const betreff = prompt("Neuer Betreff:", entry.betreff);
+  const betrag = prompt("Neuer Betrag:", entry.betrag);
+  if (!datum || !betreff || !betrag) return;
+  await updateDoc(doc(db, "budgetEntries", id), {
+    datum,
+    betreff,
+    betrag,
+    kategorie: entry.kategorie
+  });
+  loadEntries();
+};
+
+window.onload = loadEntries;
   </script>
 </head>
 <body>
