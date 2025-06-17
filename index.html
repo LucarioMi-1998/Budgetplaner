@@ -5,438 +5,168 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Budget Planer</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 20px;
-      background: #f0f4f8;
-      color: #333;
+    :root {
+      --bg: #f4f4f4;
+      --text: #333;
     }
-    .dark-mode {
-      background: #1e1e2f !important;
-      color: #e0e0e0 !important;
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e1e1e;
+        --text: #f4f4f4;
+      }
     }
-    .dark-mode input,
-    .dark-mode select,
-    .dark-mode textarea {
-      background: #3a3a55 !important;
-      color: #e0e0e0 !important;
-    }
-    .dark-mode table,
-    .dark-mode th,
-    .dark-mode td {
-      background: #2a2a40 !important;
-      color: #e0e0e0 !important;
-      border-color: #444 !important;
-    }
-    .dark-mode .column,
-    .dark-mode .summary {
-      background: #2a2a40 !important;
-      border-color: #444 !important;
-    }
-    .dark-mode button {
-      background-color: #3b82f6 !important;
-      color: white !important;
-    }
-    .dark-mode .highlight-red {
-      color: #f87171 !important;
-      background-color: #3a0d0d !important;
-      border-radius: 4px;
-      padding: 2px 4px;
-    }
-
-    .container {
-      display: flex;
-      justify-content: space-around;
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-
-    .column {
-      flex: 1;
-      background-color: #ffffff;
-      border: 1px solid #dcdfe6;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    h2 {
-      color: #34495e;
-      font-size: 1.3rem;
-      margin-bottom: 10px;
-    }
-
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: bold;
-    }
-
-    input[type="text"],
-    input[type="date"],
-    input[type="number"] {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    button {
-      margin-top: 15px;
-      padding: 10px;
-      width: 100%;
-      background-color: #3498db;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    button:hover {
-      background-color: #2980b9;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 30px;
-      background-color: #fff;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    th,
-    td {
-      border: 1px solid #e0e0e0;
-      padding: 12px;
-      text-align: left;
-    }
-
-    th {
-      background-color: #f8f9fa;
-      color: #2c3e50;
-    }
-
-    #search {
-      margin: 20px auto;
-      padding: 12px;
-      width: 100%;
-      max-width: 400px;
-      display: block;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    .summary {
-      margin: 40px auto;
-      padding: 20px;
-      border: 1px solid #dcdfe6;
-      border-radius: 10px;
-      background-color: #ffffff;
-      max-width: 500px;
-      text-align: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .over-budget {
-      color: red;
-      font-weight: bold;
-    }
-
-    .under-budget {
-      color: green;
-      font-weight: bold;
-    }
-
-    .highlight-red {
-      color: red;
-      font-weight: bold;
-    }
-
-    .column:nth-child(1) {
-      border-left: 6px solid #2ecc71;
-    }
-
-    .column:nth-child(2) {
-      border-left: 6px solid #3498db;
-    }
-
-    .column:nth-child(3) {
-      border-left: 6px solid #9b59b6;
-    }
-
-    .dark-toggle {
-      padding: 6px 10px;
-      background: #333;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      max-width: 300px;
-    }
-
-    .action-buttons button {
-      padding: 4px 6px;
-      margin-right: 4px;
-      font-size: 14px;
-    }
+    body { font-family: Arial, sans-serif; margin: 2rem; background: var(--bg); color: var(--text); }
+    h2 { color: var(--text); }
+    .category { margin-bottom: 2rem; }
+    label, input, button, select { display: block; margin: 0.3rem 0; font-size: 1rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
+    .actions button { margin-right: 0.5rem; }
+    #summary { margin-top: 2rem; font-weight: bold; }
   </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfWr48lKNoZYOpLGgF5LQy3NUOJ_9hWrw",
+      authDomain: "budgetplaner-acc2b.firebaseapp.com",
+      projectId: "budgetplaner-acc2b",
+      storageBucket: "budgetplaner-acc2b.firebasestorage.app",
+      messagingSenderId: "1034450644601",
+      appId: "1:1034450644601:web:bfe1880e424d27e9252ea8",
+      measurementId: "G-ZCSNCWSK48"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadEntries() {
+      const snapshot = await getDocs(collection(db, "budgetEntries"));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderEntries(data);
+      renderSummary(data);
+    }
+
+    function renderEntries(entries) {
+      const table = document.getElementById("entries");
+      table.innerHTML = "";
+      entries.forEach(entry => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${entry.datum}</td>
+          <td>${entry.betreff}</td>
+          <td>${entry.kategorie}</td>
+          <td>${entry.betrag} €</td>
+          <td class="actions">
+            <button onclick="editEntry('${entry.id}')">Bearbeiten</button>
+            <button onclick="deleteEntry('${entry.id}')">Löschen</button>
+          </td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    function renderSummary(entries) {
+      const summary = document.getElementById("summary");
+      let total = 0;
+      const now = new Date();
+      const weekAgo = new Date();
+      weekAgo.setDate(now.getDate() - 7);
+      entries.forEach(e => {
+        const edate = new Date(e.datum);
+        if (edate >= weekAgo && edate <= now) {
+          total += parseFloat(e.betrag);
+        }
+      });
+      summary.textContent = `Gesamtausgaben diese Woche: ${total.toFixed(2)} €`;
+    }
+
+    window.addEntry = async function(kategorie) {
+      let datum = document.getElementById(`${kategorie}-datum`).value;
+      let betreff = document.getElementById(`${kategorie}-text`).value;
+      let betrag = document.getElementById(`${kategorie}-betrag`).value;
+      if (!datum || !betreff || !betrag) return alert("Bitte alle Felder ausfüllen.");
+
+      const newEntry = {
+        datum,
+        betreff,
+        betrag: parseFloat(betrag).toFixed(2),
+        kategorie
+      };
+      await addDoc(collection(db, "budgetEntries"), newEntry);
+      loadEntries();
+    }
+
+    window.deleteEntry = async function(id) {
+      if (confirm("Eintrag wirklich löschen?")) {
+        await deleteDoc(doc(db, "budgetEntries", id));
+        loadEntries();
+      }
+    }
+
+    window.editEntry = async function(id) {
+      const snapshot = await getDocs(collection(db, "budgetEntries"));
+      const docSnap = snapshot.docs.find(d => d.id === id);
+      if (!docSnap) return;
+      const entry = docSnap.data();
+      const datum = prompt("Neues Datum:", entry.datum);
+      const betreff = prompt("Neuer Betreff:", entry.betreff);
+      const betrag = prompt("Neuer Betrag:", entry.betrag);
+      if (!datum || !betreff || !betrag) return;
+      await updateDoc(doc(db, "budgetEntries", id), {
+        datum,
+        betreff,
+        betrag,
+        kategorie: entry.kategorie
+      });
+      loadEntries();
+    }
+
+    window.onload = loadEntries;
+  </script>
 </head>
 <body>
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-    <h1 style="margin: 0;">Budget Planer</h1>
-    <button id="toggle-theme" class="dark-toggle">🌓</button>
+  <h1>Budget Planer</h1>
+
+  <div class="category">
+    <h2>Essen</h2>
+    <input type="date" id="Essen-datum">
+    <input type="text" id="Essen-text" placeholder="Geschäft">
+    <input type="number" id="Essen-betrag" placeholder="Betrag in €">
+    <button onclick="addEntry('Essen')">Eintrag hinzufügen</button>
   </div>
 
-  <div class="container">
-    <div class="column">
-      <h2>Essen</h2>
-      <label for="essen-datum">Datum</label>
-      <input type="date" id="essen-datum" />
-      <label for="essen-laden">Laden</label>
-      <input type="text" id="essen-laden" placeholder="z.B. Supermarkt" />
-      <label for="essen-betrag">Betrag (€)</label>
-      <input type="number" id="essen-betrag" step="0.01" />
-      <button onclick="addEntry('Essen')">Eintrag speichern</button>
-    </div>
-    <div class="column">
-      <h2>Getränke</h2>
-      <label for="getraenke-datum">Datum</label>
-      <input type="date" id="getraenke-datum" />
-      <label for="getraenke-laden">Laden</label>
-      <input type="text" id="getraenke-laden" placeholder="z.B. Getränkemarkt" />
-      <label for="getraenke-betrag">Betrag (€)</label>
-      <input type="number" id="getraenke-betrag" step="0.01" />
-      <button onclick="addEntry('Getränke')">Eintrag speichern</button>
-    </div>
-    <div class="column">
-      <h2>Sonstiges</h2>
-      <label for="sonstiges-datum">Datum</label>
-      <input type="date" id="sonstiges-datum" />
-      <label for="sonstiges-zweck">Verwendungszweck</label>
-      <input type="text" id="sonstiges-zweck" placeholder="z.B. Geschenk" />
-      <label for="sonstiges-betrag">Betrag (€)</label>
-      <input type="number" id="sonstiges-betrag" step="0.01" />
-      <button onclick="addEntry('Sonstiges')">Eintrag speichern</button>
-    </div>
+  <div class="category">
+    <h2>Getränke</h2>
+    <input type="date" id="Getränke-datum">
+    <input type="text" id="Getränke-text" placeholder="Getränkestelle">
+    <input type="number" id="Getränke-betrag" placeholder="Betrag in €">
+    <button onclick="addEntry('Getränke')">Eintrag hinzufügen</button>
   </div>
 
-  <input type="text" id="search" placeholder="Nach Datum suchen (YYYY-MM-DD)" onkeyup="filterEntries()" />
+  <div class="category">
+    <h2>Sonstiges</h2>
+    <input type="date" id="Sonstiges-datum">
+    <input type="text" id="Sonstiges-text" placeholder="Zweck">
+    <input type="number" id="Sonstiges-betrag" placeholder="Betrag in €">
+    <button onclick="addEntry('Sonstiges')">Eintrag hinzufügen</button>
+  </div>
 
-  <table id="entry-table">
+  <h2>Alle Einträge</h2>
+  <table>
     <thead>
       <tr>
         <th>Datum</th>
         <th>Betreff</th>
         <th>Kategorie</th>
-        <th>Betrag (€)</th>
+        <th>Betrag</th>
         <th>Aktionen</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="entries"></tbody>
   </table>
 
-  <div class="summary">
-    <h3>Auswertung der aktuellen Woche</h3>
-    <p><strong>Soll:</strong> 230,00 €</p>
-    <p><strong>Ist:</strong> <span id="ist-wert" class="under-budget">0.00</span> €</p>
-  </div>
-
-  <div style="text-align: center; margin-top: 20px;">
-    <button onclick="exportTableToCSV()" style="
-      padding: 10px;
-      width: 100%;
-      max-width: 300px;
-      background-color: #3498db;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    ">💾 Export</button>
-  </div>
-
-  <script>
-    document.getElementById('toggle-theme').addEventListener('click', () => {
-      document.body.classList.toggle('dark-mode');
-    });
-
-    function getMonday(d) {
-      const date = new Date(d);
-      const day = date.getDay();
-      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-      date.setDate(diff);
-      date.setHours(0, 0, 0, 0);
-      return date;
-    }
-
-    function addEntry(kategorie) {
-      let datum, betreff, betrag;
-
-      if (kategorie === 'Essen') {
-        datum = document.getElementById('essen-datum').value;
-        betreff = document.getElementById('essen-laden').value;
-        betrag = document.getElementById('essen-betrag').value;
-      } else if (kategorie === 'Getränke') {
-        datum = document.getElementById('getraenke-datum').value;
-        betreff = document.getElementById('getraenke-laden').value;
-        betrag = document.getElementById('getraenke-betrag').value;
-      } else if (kategorie === 'Sonstiges') {
-        datum = document.getElementById('sonstiges-datum').value;
-        betreff = document.getElementById('sonstiges-zweck').value;
-        betrag = document.getElementById('sonstiges-betrag').value;
-      }
-
-      if (!datum || !betreff || !betrag) {
-        alert('Bitte alle Felder ausfüllen.');
-        return;
-      }
-
-      const newEntry = {
-        datum,
-        betreff,
-        kategorie,
-        betrag: parseFloat(betrag).toFixed(2)
-      };
-
-      const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
-      entries.push(newEntry);
-      localStorage.setItem('budgetEntries', JSON.stringify(entries));
-
-      renderEntries();
-      updateWeeklySummary();
-    }
-
-    function renderEntries() {
-      const tableBody = document.querySelector('#entry-table tbody');
-      tableBody.innerHTML = '';
-      const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
-
-      entries.forEach((entry, index) => {
-        const row = document.createElement('tr');
-        const betragClass = (entry.kategorie === 'Essen' && parseFloat(entry.betrag) > 20) ? 'highlight-red' : '';
-
-        row.innerHTML = `
-          <td>${entry.datum}</td>
-          <td>${entry.betreff}</td>
-          <td>${entry.kategorie}</td>
-          <td class="${betragClass}">${entry.betrag}</td>
-        `;
-
-        const actionCell = document.createElement('td');
-        actionCell.className = 'action-buttons';
-
-        const editButton = document.createElement('button');
-        editButton.textContent = '✏️';
-        editButton.onclick = () => editEntry(index);
-
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = '🗑️';
-        deleteButton.onclick = () => deleteEntry(index);
-
-        actionCell.appendChild(editButton);
-        actionCell.appendChild(deleteButton);
-        row.appendChild(actionCell);
-
-        tableBody.appendChild(row);
-      });
-    }
-
-    function deleteEntry(index) {
-      if (confirm('Eintrag wirklich löschen?')) {
-        const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
-        entries.splice(index, 1);
-        localStorage.setItem('budgetEntries', JSON.stringify(entries));
-        renderEntries();
-        updateWeeklySummary();
-      }
-    }
-
-    function editEntry(index) {
-      const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
-      const entry = entries[index];
-
-      const newDatum = prompt('Neues Datum:', entry.datum);
-      const newBetreff = prompt('Neuer Betreff:', entry.betreff);
-      const newBetrag = prompt('Neuer Betrag (€):', entry.betrag);
-
-      if (newDatum && newBetreff && newBetrag && !isNaN(newBetrag)) {
-        entries[index] = {
-          datum: newDatum,
-          betreff: newBetreff,
-          kategorie: entry.kategorie,
-          betrag: parseFloat(newBetrag).toFixed(2)
-        };
-        localStorage.setItem('budgetEntries', JSON.stringify(entries));
-        renderEntries();
-        updateWeeklySummary();
-      }
-    }
-
-    function filterEntries() {
-      const filter = document.getElementById('search').value;
-      const rows = document.querySelectorAll('#entry-table tbody tr');
-      rows.forEach(row => {
-        const date = row.cells[0].textContent;
-        row.style.display = date.includes(filter) ? '' : 'none';
-      });
-    }
-
-    function updateWeeklySummary() {
-      const entries = JSON.parse(localStorage.getItem('budgetEntries') || '[]');
-      const today = new Date();
-      const monday = getMonday(today);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-
-      let sum = 0;
-      entries.forEach(entry => {
-        const date = new Date(entry.datum);
-        if (date >= monday && date <= sunday) {
-          sum += parseFloat(entry.betrag);
-        }
-      });
-
-      const istWertElem = document.getElementById('ist-wert');
-      istWertElem.textContent = sum.toFixed(2);
-
-      if (sum > 230) {
-        istWertElem.classList.remove('under-budget');
-        istWertElem.classList.add('over-budget');
-      } else {
-        istWertElem.classList.remove('over-budget');
-        istWertElem.classList.add('under-budget');
-      }
-    }
-
-    function exportTableToCSV() {
-      const rows = document.querySelectorAll('#entry-table tr');
-      let csvContent = '';
-      rows.forEach(row => {
-        const cols = row.querySelectorAll('td, th');
-        const rowData = Array.from(cols).map(col => `"${col.innerText.replace(/"/g, '""')}"`).join(',');
-        csvContent += rowData + '\n';
-      });
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.setAttribute('href', URL.createObjectURL(blob));
-      link.setAttribute('download', 'budget_daten.csv');
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    window.onload = () => {
-      renderEntries();
-      updateWeeklySummary();
-    };
-  </script>
+  <div id="summary"></div>
 </body>
 </html>
