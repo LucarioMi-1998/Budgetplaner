@@ -83,14 +83,17 @@
       background: #4b5563;
     }
     #summary {
-      margin-top: 2rem;
-      font-weight: bold;
-      font-size: 1.2rem;
-      background: white;
-      padding: 1rem;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
+  margin-top: 2rem;
+  font-weight: bold;
+  font-size: 1.2rem;
+  background: var(--primary);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: white;
+  display: block;
+  text-align: center;
+}
   </style>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -127,17 +130,19 @@ function renderEntries(entries) {
   table.innerHTML = "";
   entries.forEach(entry => {
     const row = document.createElement("tr");
+    const isHigh = parseFloat(entry.betrag) > 20;
     row.innerHTML = `
       <td>${entry.datum}</td>
       <td>${entry.betreff}</td>
       <td>${entry.kategorie}</td>
-      <td>${entry.betrag} €</td>
+      <td style="${isHigh ? 'color:red;font-weight:bold' : ''}">${entry.betrag} €</td>
       <td class="actions">
-        <button onclick="editEntry('${entry.id}')">Bearbeiten</button>
-        <button onclick="deleteEntry('${entry.id}')">Löschen</button>
+        <button style="padding:0.3rem 0.5rem;font-size:0.9rem" title="Bearbeiten" onclick="editEntry('${entry.id}')">✏️</button>
+        <button style="padding:0.3rem 0.5rem;font-size:0.9rem" title="Löschen" onclick="deleteEntry('${entry.id}')">🗑️</button>
       </td>
     `;
     table.appendChild(row);
+  });
   });
 }
 
@@ -153,7 +158,7 @@ function renderSummary(entries) {
       total += parseFloat(e.betrag);
     }
   });
-  summary.textContent = `IST-Wert (KW ${currentWeek}): ${total.toFixed(2)} €`;
+  summary.textContent = `SOLL: 230,00 € | IST-Wert (KW ${currentWeek}): ${total.toFixed(2)} €`;
 }
 
 window.addEntry = async function(kategorie) {
