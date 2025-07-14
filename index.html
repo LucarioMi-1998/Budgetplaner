@@ -67,6 +67,7 @@
     th {
       background-color: #f3f4f6;
       color: #374151;
+      cursor: pointer;
     }
     .actions button {
       margin-right: 0.5rem;
@@ -122,7 +123,7 @@
   <table>
     <thead>
       <tr>
-        <th>Datum</th>
+        <th onclick="toggleSortDirection()">Datum ⬍</th>
         <th>Betreff</th>
         <th>Kategorie</th>
         <th>Betrag</th>
@@ -150,6 +151,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    let sortDescending = true; // true = neueste zuerst
+
     function getCurrentCalendarWeek(date = new Date()) {
       const target = new Date(date.valueOf());
       const dayNr = (date.getDay() + 6) % 7;
@@ -158,6 +161,11 @@
       const diff = target - firstThursday;
       return 1 + Math.round(diff / (7 * 24 * 60 * 60 * 1000));
     }
+
+    window.toggleSortDirection = () => {
+      sortDescending = !sortDescending;
+      ladeEintraege();
+    };
 
     async function ladeEintraege() {
       const eintragsliste = document.getElementById("eintragsliste");
@@ -177,8 +185,11 @@
         });
       });
 
-      // Sortiere nach Datum (neueste zuerst)
-      eintraege.sort((a, b) => new Date(b.datum) - new Date(a.datum));
+      eintraege.sort((a, b) => {
+        const dateA = new Date(a.datum);
+        const dateB = new Date(b.datum);
+        return sortDescending ? dateB - dateA : dateA - dateB;
+      });
 
       eintraege.forEach(eintrag => {
         const edate = new Date(eintrag.datum);
