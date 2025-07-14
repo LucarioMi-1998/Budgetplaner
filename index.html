@@ -152,7 +152,7 @@
 
     function getCurrentCalendarWeek(date = new Date()) {
       const target = new Date(date.valueOf());
-      const dayNr = (date.getDay() + 6) % 7; // Montag = 0
+      const dayNr = (date.getDay() + 6) % 7;
       target.setDate(target.getDate() - dayNr + 3);
       const firstThursday = new Date(target.getFullYear(), 0, 4);
       const diff = target - firstThursday;
@@ -167,24 +167,35 @@
       const currentWeek = getCurrentCalendarWeek();
 
       const snapshot = await getDocs(collection(db, "eintraege"));
+      const eintraege = [];
+
       snapshot.forEach(docSnap => {
         const eintrag = docSnap.data();
-        const zeile = document.createElement("tr");
+        eintraege.push({
+          id: docSnap.id,
+          ...eintrag
+        });
+      });
 
+      // Sortiere nach Datum (neueste zuerst)
+      eintraege.sort((a, b) => new Date(b.datum) - new Date(a.datum));
+
+      eintraege.forEach(eintrag => {
         const edate = new Date(eintrag.datum);
         const eWeek = getCurrentCalendarWeek(edate);
         if (eWeek === currentWeek && edate.getFullYear() === now.getFullYear()) {
           total += parseFloat(eintrag.betrag);
         }
 
+        const zeile = document.createElement("tr");
         zeile.innerHTML = `
           <td>${eintrag.datum}</td>
           <td>${eintrag.betreff}</td>
           <td>${eintrag.kategorie}</td>
           <td>${eintrag.betrag} €</td>
           <td class="actions">
-            <button onclick="bearbeiteEintrag('${docSnap.id}')">✏️</button>
-            <button onclick="loescheEintrag('${docSnap.id}')">🗑️</button>
+            <button onclick="bearbeiteEintrag('${eintrag.id}')">✏️</button>
+            <button onclick="loescheEintrag('${eintrag.id}')">🗑️</button>
           </td>
         `;
         eintragsliste.appendChild(zeile);
