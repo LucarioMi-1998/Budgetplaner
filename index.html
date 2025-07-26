@@ -151,7 +151,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let sortDescending = true; // true = neueste zuerst
+    const SOLL_BUDGET = 305.00;
+    let sortDescending = true;
 
     function getCurrentCalendarWeek(date = new Date()) {
       const target = new Date(date.valueOf());
@@ -213,7 +214,7 @@
       });
 
       document.getElementById("summary").textContent =
-        `SOLL: 230,00 € | IST (KW ${currentWeek}): ${total.toFixed(2)} €`;
+        `SOLL: ${SOLL_BUDGET.toFixed(2)} € | IST (KW ${currentWeek}): ${total.toFixed(2)} €`;
     }
 
     window.addEntry = async function(kategorie) {
